@@ -25,7 +25,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
  * @version 1.0.0
  * @date 2021-05-21 07:42
  */
-@ComponentScan
+@ComponentScan("io.light.frame.dal.mybatis.generator")
 @Configuration
 @EnableConfigurationProperties(MybatisGenProperties.class)
 @AutoConfigureAfter({DataSourceAutoConfiguration.class})
