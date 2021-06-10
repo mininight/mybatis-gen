@@ -1,0 +1,2 @@
+org.springframework.context.ApplicationListener=\
+io.light.frame.dal.mybatis.generator.util.GenToolKit

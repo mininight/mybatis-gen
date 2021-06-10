@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: mybatis-generator
+  output:
+    ansi:
+      enabled: always
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:Test_Any;MODE=MySQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=true
+    schema: H2_DDL.sql
+    username: PowerMan
+logging:
+  file:
+    name: logs/${spring.application.name}.log
+  level:
+    root: debug
+    org.springframework: info
+    org.mybatis: info
+    com.zaxxer.hikari: info
+    org.apache.velocity: info
+light:
+  mybatis:
+    generator:
+      dialect: h2
+      company: xulianqiang90@163.com
+      design-dir: mybatis_gen/tables
+      java-build-path: src/test/java
+      resource-build-path: src/test/java
+      entity-package: gen.entity
+      dao-package: gen.dao
+      mapper-xml-package: gen.xml
+

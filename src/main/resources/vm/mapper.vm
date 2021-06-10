@@ -1,0 +1,29 @@
+#set($_follow_ = "")
+#set($_tab_ = "    ")
+#set($_newLine_ = "
+")
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="$mapper.daoClazz.name">
+
+    <resultMap id="BaseResultMap" type="$mapper.entityClazz.name">
+        #if($mapper.properties.count!=0)
+        #foreach($p in $mapper.properties)
+        #if($p.primaryKey)
+        <id column="$p.columnName" jdbcType="$p.jdbcType" property="$p.propertyName"/>
+        #else
+        <result column="$p.columnName" jdbcType="$p.jdbcType" property="$p.propertyName"/>
+        #end
+        #end
+        #end
+    </resultMap>
+
+    #if($mapper.sqlFuncList.count!=0)
+    #foreach($func in $mapper.funcList)
+    <$func.type id="$func.id"#if($func.parameterClazz) parameterType="$func.parameterClazz.name"#end#if($func.resultTypeName)#if($func.resultTypeName=="object") resultMap="BaseResultMap"#else#if($func.resultClazz) resultType="$func.resultClazz.name"#end#end#end#foreach($kv in $func.attrs.entrySet()) $kv.key="$kv.value"#end>
+        $_follow_#if($func.content)$func.content#end
+    </$func.type>
+
+    #end
+    #end
+</mapper>

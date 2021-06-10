@@ -1,0 +1,62 @@
+#set($_supperClass_ = "#if($clazz.superClazz) extends $clazz.superClazz#end")
+#set($_interfaces_ = "#if($clazz.interfaces) implements #foreach($ifc in $clazz.interfaces)$ifc#if($foreach.hasNext), #else#end#end#end")
+#set($_follow_ = "")
+#parse("copyright.vm")
+package $clazz.pkg;
+
+#foreach($imp in $clazz.imports)
+import $imp.name;
+#end
+
+/**
+#if($clazz.comment)
+ * $clazz.comment
+#else
+ * TODO
+#end
+ *
+ * @author $author
+ * @version 1.0.0
+ * @date $todayStr
+ */
+#foreach($a in $clazz.annotations)
+@$a
+#end
+#foreach($k in $clazz.keywords)$k #end$clazz.mode $clazz$_supperClass_$_interfaces_ {
+#foreach($f in $clazz.fields)
+
+    #if($f.comment)
+    /**
+     * $f.comment
+     */
+    #end
+    #foreach($a in $f.annotations)
+    @$a
+    #end
+    $_follow_#foreach($k in $f.keywords)$k #end$f.type $f.name;
+#end
+#foreach($m in $clazz.methods)
+
+    /**
+    #if($m.comment)
+     * $m.comment
+    #else
+     * TODO
+    #end
+     *
+    #foreach($p in $m.params)
+     * @param $p.name #if($p.commnet)$p.commnet#end
+    #end
+    #if($m.hasReturn)
+     * @return #if($m.returnComment)$m.returnComment#end
+    #end
+    #if($m.hasThrows)
+     * @throws #if($m.throwsComment)$m.throwsComment#end
+    #end
+     */
+    #foreach($a in $m.annotations)
+    @$a
+    #end
+    $_follow_#foreach($k in $m.keywords)$k #end$m.returnType $m.name$m.paramsAndBlock
+#end
+}

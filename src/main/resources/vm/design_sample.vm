@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mybatis SYSTEM "mybatis3-table-mapper-gen.dtd">
+<mybatis table="$mapper.table.name" scheme="$mapper.table.schema">
+
+    <!--  Insert record  -->
+    <insert id="insert" autoGen="true"/>
+    #if($mapper.primaryKeys && $mapper.primaryKeys.count!=0)
+
+    <!--  Update record by primaryKey -->
+    <update id="updateByPrimaryKey" parameterType="object">
+        <columns/>
+        where#foreach($p in $mapper.primaryKeys)#if(${velocityCount}>1) and #else #end$p.columnName = #{$p.propertyName}#end
+    </update>
+
+    <!--  Select by primaryKey -->
+    <select id="selectByPrimaryKey" resultType="object">
+        <parameters>
+        #foreach($p in $mapper.primaryKeys)
+            <param name="$p.propertyName" type="$p.javaType"/>
+        #end
+        </parameters>
+        <columns/>
+        where#foreach($p in $mapper.primaryKeys)#if(${velocityCount}>1) and #else #end$p.columnName = #{$p.propertyName}#end
+    </select>
+    #end
+
+    <!--  Select all -->
+    <select id="selectAll" resultType="object" multi="true">
+        <columns/>
+    </select>
+
+</mybatis>
