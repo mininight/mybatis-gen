@@ -40,7 +40,7 @@ public class MetaAccessorImpl implements MetaAccessor {
     public MetaAccessorImpl(MybatisGenProperties mybatisGenProperties, List<MetaOperations> metaOperations) {
         this.mybatisGenProperties = mybatisGenProperties;
         this.metaOperations = metaOperations.stream().collect(Collectors.toMap(MetaOperations::getDialect,
-                Function.identity(), (o, n) -> (o.getOrder() > n.getOrder() ? o : n), HashMap::new));
+                Function.identity(), (o, n) -> (o.getOrder() <= n.getOrder() ? o : n), HashMap::new));
     }
 
     @Override
