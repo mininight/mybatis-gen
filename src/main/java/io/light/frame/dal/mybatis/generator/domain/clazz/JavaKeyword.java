@@ -34,6 +34,11 @@ public enum JavaKeyword {
     SYNCHRONIZED,
 
     /**
+     * volatile
+     */
+    VOLATILE,
+
+    /**
      * static
      */
     STATIC,
