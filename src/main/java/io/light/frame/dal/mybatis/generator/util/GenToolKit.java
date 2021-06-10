@@ -264,7 +264,6 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
 
     public static Document readXml(File xmlFile) throws Exception {
         try (InputStream in = new FileInputStream(xmlFile)) {
-            int i = in.available();
             SAXReader reader = new SAXReader();
             return reader.read(in);
         }
