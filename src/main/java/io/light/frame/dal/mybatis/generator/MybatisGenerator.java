@@ -57,6 +57,9 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
 
     private final Set<String> asCharactersNodes = Sets.newHashSet("columns");
 
+    /**
+     * TODO reload able
+     */
     private final Map<String, Map<String, Document>> designXmlPool = new ConcurrentHashMap<>();
 
     @Autowired

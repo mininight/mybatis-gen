@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.function.Function;
 
 /**
- * TODO
+ * TODO sync with {@link org.apache.ibatis.type.JdbcType}
  *
  * @author Ivan
  * @version 1.0.0
