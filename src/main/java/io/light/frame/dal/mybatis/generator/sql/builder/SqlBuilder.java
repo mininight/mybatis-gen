@@ -4,8 +4,8 @@
 
 package io.light.frame.dal.mybatis.generator.sql.builder;
 
-import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
 import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
+import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
 import org.dom4j.Element;
 
 /**
@@ -17,9 +17,17 @@ import org.dom4j.Element;
  */
 public interface SqlBuilder {
 
-    default boolean accept(Element element) {
+    default boolean accept(MapperFunc mapperFunc, Element element) {
         return false;
     }
 
-    void build(StringBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc);
+    default void prepare(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper,
+                         MapperFunc mapperFunc) {
+    }
+
+    void build(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc);
+
+    default void onComplete(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper,
+                            MapperFunc mapperFunc) {
+    }
 }

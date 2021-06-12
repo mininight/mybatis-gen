@@ -2,14 +2,14 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.sql.builder.columns;
+package io.light.frame.dal.mybatis.generator.sql.builder.appender.columns;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * TODO
+ * Column alias
  *
  * @author Ivan
  * @version 1.0.0

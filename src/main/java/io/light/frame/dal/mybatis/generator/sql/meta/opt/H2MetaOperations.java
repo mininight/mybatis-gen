@@ -140,7 +140,7 @@ public class H2MetaOperations extends BaseMetaOperations {
                     return "table_schema";
                 }
             }
-            if (type == TableColumn.class || type == Table.class) {
+            if (type == TableColumn.class) {
                 if ("remarks".equalsIgnoreCase(key)) {
                     return "column_comment";
                 }

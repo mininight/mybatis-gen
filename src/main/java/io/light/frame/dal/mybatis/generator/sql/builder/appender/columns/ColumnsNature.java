@@ -2,7 +2,7 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.sql.builder.columns;
+package io.light.frame.dal.mybatis.generator.sql.builder.appender.columns;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * TODO
+ * Columns nature
  *
  * @author Ivan
  * @version 1.0.0

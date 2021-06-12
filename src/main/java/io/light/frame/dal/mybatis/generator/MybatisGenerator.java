@@ -9,11 +9,11 @@ import io.light.frame.dal.mybatis.generator.domain.clazz.Clazz;
 import io.light.frame.dal.mybatis.generator.domain.clazz.ClazzField;
 import io.light.frame.dal.mybatis.generator.domain.clazz.ClazzMode;
 import io.light.frame.dal.mybatis.generator.domain.clazz.JavaKeyword;
+import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
 import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
 import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import io.light.frame.dal.mybatis.generator.sql.Dialect;
 import io.light.frame.dal.mybatis.generator.sql.builder.SqlBuilder;
-import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
 import io.light.frame.dal.mybatis.generator.sql.meta.MetaAccessor;
 import io.light.frame.dal.mybatis.generator.sql.meta.entity.Table;
 import io.light.frame.dal.mybatis.generator.sql.meta.opt.MetaOperations;
@@ -214,8 +214,14 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
                     mapperFunc.setComment(String.join("\n     * ", comments));
                 }
                 mapperFunc.buildContent((strBuilder, xmlElement) -> {
-                    sqlBuilders.stream().filter(b -> b.accept(xmlElement)).forEach(sqlBuilder -> {
-                        sqlBuilder.build(strBuilder, xmlElement, mapper, mapperFunc);
+                    sqlBuilders.stream().filter(b -> b.accept(mapperFunc, xmlElement)).forEach(sqlBuilder -> {
+                        if (!strBuilder.isPrepared()) {
+                            sqlBuilder.prepare(strBuilder, xmlElement, mapper, mapperFunc);
+                        } else if (strBuilder.isCompleted()) {
+                            sqlBuilder.onComplete(strBuilder, xmlElement, mapper, mapperFunc);
+                        } else {
+                            sqlBuilder.build(strBuilder, xmlElement, mapper, mapperFunc);
+                        }
                     });
                 }, asCharactersNodes);
                 mapper.getFuncList().add(mapperFunc);

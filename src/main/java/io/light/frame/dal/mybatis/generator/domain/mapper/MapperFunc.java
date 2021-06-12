@@ -144,15 +144,17 @@ public class MapperFunc {
         }
     }
 
-    public void buildContent(BiConsumer<StringBuilder, Element> appender, Set<String> asCharactersNodes) {
-        StringBuilder builder;
+    public void buildContent(BiConsumer<ContentBuilder, Element> appender, Set<String> asCharactersNodes) {
+        ContentBuilder builder;
         if (autoGen) {
-            builder = new StringBuilder();
+            builder = new ContentBuilder();
             appender.accept(builder, element);
             content = builder.toString().trim();
             return;
         }
-        builder = new StringBuilder();
+        builder = new ContentBuilder();
+        appender.accept(builder, element);
+        builder.markPrepared();
         List<Node> contentNodes = element.content();
         Iterator<Node> iter = contentNodes.iterator();
         while (iter.hasNext()) {
@@ -164,9 +166,11 @@ public class MapperFunc {
             if (asCharactersNodes != null && asCharactersNodes.contains(nodeName)) {
                 appender.accept(builder, (Element) node);
             } else {
-                builder.append(node.asXML());
+                new StringBuilder().append(node.asXML());
             }
         }
+        builder.markCompleted();
+        appender.accept(builder, element);
         content = builder.toString().trim();
         while (content.contains("\n\n")) {
             content = content.replaceAll("\\n\\n", "");
@@ -239,6 +243,44 @@ public class MapperFunc {
                 }
             }
             return null;
+        }
+    }
+
+    @Getter
+    public static class ContentBuilder {
+        private final StringBuilder appender = new StringBuilder();
+        private volatile boolean prepared;
+        private volatile boolean completed;
+
+        private void markPrepared() {
+            this.prepared = true;
+        }
+
+        private void markCompleted() {
+            this.completed = true;
+        }
+
+        public ContentBuilder append(Object obj) {
+            appender.append(obj);
+            return this;
+        }
+
+        public ContentBuilder append(String str) {
+            appender.append(str);
+            return this;
+        }
+
+        public int indexOf(String str) {
+            return indexOf(str, 0);
+        }
+
+        public int indexOf(String str, int fromIndex) {
+            return appender.indexOf(str, fromIndex);
+        }
+
+        @Override
+        public String toString() {
+            return appender.toString();
         }
     }
 

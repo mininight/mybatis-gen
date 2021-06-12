@@ -2,14 +2,16 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.sql.builder;
+package io.light.frame.dal.mybatis.generator.sql.builder.appender.columns;
 
 import io.light.frame.dal.mybatis.generator.domain.clazz.Clazz;
-import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
-import io.light.frame.dal.mybatis.generator.sql.builder.columns.ColumnAlias;
-import io.light.frame.dal.mybatis.generator.sql.builder.columns.Columns;
-import io.light.frame.dal.mybatis.generator.sql.builder.columns.ColumnsNature;
 import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
+import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
+import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
+import io.light.frame.dal.mybatis.generator.sql.builder.appender.SqlAppender;
+import io.light.frame.dal.mybatis.generator.sql.builder.appender.columns.ColumnAlias;
+import io.light.frame.dal.mybatis.generator.sql.builder.appender.columns.Columns;
+import io.light.frame.dal.mybatis.generator.sql.builder.appender.columns.ColumnsNature;
 import io.light.frame.dal.mybatis.generator.sql.meta.MetaAccessor;
 import io.light.frame.dal.mybatis.generator.util.GenToolKit;
 import org.apache.commons.lang3.ArrayUtils;
@@ -28,28 +30,40 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * TODO
+ * Columns appender
  *
  * @author Ivan
  * @version 1.0.0
  * @date 2021-05-22 11:03
  */
 @Component
-public class ColumnsBuilder implements SqlBuilder {
+public class ColumnsSqlAppender extends SqlAppender {
 
     private final MetaAccessor metaAccessor;
 
-    public ColumnsBuilder(MetaAccessor metaAccessor) {
+    public ColumnsSqlAppender(MetaAccessor metaAccessor) {
         this.metaAccessor = metaAccessor;
     }
 
     @Override
-    public boolean accept(Element element) {
-        return "columns".equalsIgnoreCase(element.getName());
+    public boolean canAccept(MapperFunc mapperFunc, Element element) {
+        return !mapperFunc.isAutoGen() && "columns".equalsIgnoreCase(element.getName());
     }
 
     @Override
-    public void build(StringBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc) {
+    public void prepare(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc) {
+        MapperFunc.Type funcType = mapperFunc.getType();
+        if (funcType == MapperFunc.Type.delete) {
+            throw new MybatisGenException("Unsupported mapper function:" + funcType);
+        }
+        List<Element> elements = element.getParent().elements("columns");
+        if (elements.size() > 1) {
+            throw new MybatisGenException("Only one '<columns>' can be used in function: " + funcType);
+        }
+    }
+
+    @Override
+    public void build(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc) {
         Columns columns = GenToolKit.elementAttrsAsObject(element, Columns.class);
         List<Columns.Append> appends = columns.getAppends();
         Columns.Scope scope = columns.getScope();
@@ -130,7 +144,7 @@ public class ColumnsBuilder implements SqlBuilder {
                     builder.append("\n\t\t\t");
                 }
             }
-            if (!xmlContentHasKeyword(element, "from", true)) {
+            if (!xmlContentHasKeyword(element, "from")) {
                 builder.append("\n\t\tfrom ").append(thisTableName);
                 if (StringUtils.isNotBlank(columns.getTableAlias())) {
                     builder.append(" ").append(columns.getTableAlias());
@@ -139,7 +153,7 @@ public class ColumnsBuilder implements SqlBuilder {
         }
     }
 
-    public void appendInsertBlock(StringBuilder builder, String tableName, List<TableMapper.Property> properties) {
+    public void appendInsertBlock(MapperFunc.ContentBuilder builder, String tableName, List<TableMapper.Property> properties) {
         completeSqlPrefix(builder, MapperFunc.Type.insert);
         if (builder.indexOf(tableName) < 0) {
             builder.append(" into ");
@@ -229,7 +243,7 @@ public class ColumnsBuilder implements SqlBuilder {
         return properties;
     }
 
-    private void completeSqlPrefix(StringBuilder builder, MapperFunc.Type funcType) {
+    private void completeSqlPrefix(MapperFunc.ContentBuilder builder, MapperFunc.Type funcType) {
         if (builder.indexOf(funcType.name()) < 0) {
             builder.append(" ");
             builder.append(funcType.name());
@@ -239,8 +253,9 @@ public class ColumnsBuilder implements SqlBuilder {
         }
     }
 
-    private boolean xmlContentHasKeyword(Element element, String sqlKeyword, boolean ignoreCase) {
-        String kw = ignoreCase ? sqlKeyword.toLowerCase() : sqlKeyword;
+    private boolean xmlContentHasKeyword(Element element, String sqlKeyword) {
+        String kw = sqlKeyword.toLowerCase();
+        int count = 0;
         for (Node node : element.content()) {
             if (!(node instanceof Text)) {
                 continue;
@@ -249,13 +264,10 @@ public class ColumnsBuilder implements SqlBuilder {
             if (StringUtils.isBlank(text)) {
                 continue;
             }
-            if (ignoreCase) {
-                text = text.toLowerCase();
-            }
-            if (text.contains(kw)) {
-                return true;
+            if (text.toLowerCase().contains(kw)) {
+                count++;
             }
         }
-        return false;
+        return count == 1;
     }
 }
