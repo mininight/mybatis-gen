@@ -4,14 +4,11 @@
 
 package io.light.frame.dal.mybatis.generator.sql.builder.appender.columns;
 
-import io.light.frame.dal.mybatis.generator.domain.clazz.Clazz;
-import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
-import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.Clazz;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.MapperFunc;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.TableMapper;
 import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import io.light.frame.dal.mybatis.generator.sql.builder.appender.SqlAppender;
-import io.light.frame.dal.mybatis.generator.sql.builder.appender.columns.ColumnAlias;
-import io.light.frame.dal.mybatis.generator.sql.builder.appender.columns.Columns;
-import io.light.frame.dal.mybatis.generator.sql.builder.appender.columns.ColumnsNature;
 import io.light.frame.dal.mybatis.generator.sql.meta.MetaAccessor;
 import io.light.frame.dal.mybatis.generator.util.GenToolKit;
 import org.apache.commons.lang3.ArrayUtils;
@@ -47,11 +44,10 @@ public class ColumnsSqlAppender extends SqlAppender {
 
     @Override
     public boolean canAccept(MapperFunc mapperFunc, Element element) {
-        return !mapperFunc.isAutoGen() && "columns".equalsIgnoreCase(element.getName());
-    }
-
-    @Override
-    public void prepare(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc) {
+        boolean canAccept = !mapperFunc.isAutoGen() && "columns".equalsIgnoreCase(element.getName());
+        if (!canAccept) {
+            return false;
+        }
         MapperFunc.Type funcType = mapperFunc.getType();
         if (funcType == MapperFunc.Type.delete) {
             throw new MybatisGenException("Unsupported mapper function:" + funcType);
@@ -60,6 +56,7 @@ public class ColumnsSqlAppender extends SqlAppender {
         if (elements.size() > 1) {
             throw new MybatisGenException("Only one '<columns>' can be used in function: " + funcType);
         }
+        return true;
     }
 
     @Override
@@ -144,7 +141,8 @@ public class ColumnsSqlAppender extends SqlAppender {
                     builder.append("\n\t\t\t");
                 }
             }
-            if (!xmlContentHasKeyword(element, "from")) {
+            if (!xmlContentHasKeyword(element, "from ")
+                    && !xmlContentHasKeyword(element, "from\n")) {
                 builder.append("\n\t\tfrom ").append(thisTableName);
                 if (StringUtils.isNotBlank(columns.getTableAlias())) {
                     builder.append(" ").append(columns.getTableAlias());
@@ -255,7 +253,6 @@ public class ColumnsSqlAppender extends SqlAppender {
 
     private boolean xmlContentHasKeyword(Element element, String sqlKeyword) {
         String kw = sqlKeyword.toLowerCase();
-        int count = 0;
         for (Node node : element.content()) {
             if (!(node instanceof Text)) {
                 continue;
@@ -265,9 +262,9 @@ public class ColumnsSqlAppender extends SqlAppender {
                 continue;
             }
             if (text.toLowerCase().contains(kw)) {
-                count++;
+                return true;
             }
         }
-        return count == 1;
+        return false;
     }
 }

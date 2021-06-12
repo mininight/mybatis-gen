@@ -1,5 +1,6 @@
-package io.light.frame.dal.mybatis.generator.cfg;
+package io.light.frame.dal.mybatis.generator;
 
+import io.light.frame.dal.mybatis.generator.core.MybatisGenerator;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 
@@ -11,7 +12,7 @@ import java.lang.annotation.*;
  * @author Ivan
  * @version 1.0.0
  * @date 2021-06-10 12:57
- * @see io.light.frame.dal.mybatis.generator.MybatisGenerator
+ * @see MybatisGenerator
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

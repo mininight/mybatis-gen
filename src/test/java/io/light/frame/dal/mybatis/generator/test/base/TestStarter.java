@@ -1,6 +1,6 @@
 package io.light.frame.dal.mybatis.generator.test.base;
 
-import io.light.frame.dal.mybatis.generator.cfg.EnableMybatisGen;
+import io.light.frame.dal.mybatis.generator.EnableMybatisGen;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**

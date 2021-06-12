@@ -1,16 +1,21 @@
-package io.light.frame.dal.mybatis.generator;
+package io.light.frame.dal.mybatis.generator.core;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.light.frame.dal.mybatis.generator.cfg.MybatisGenProperties;
-import io.light.frame.dal.mybatis.generator.domain.clazz.Clazz;
-import io.light.frame.dal.mybatis.generator.domain.clazz.ClazzField;
-import io.light.frame.dal.mybatis.generator.domain.clazz.ClazzMode;
-import io.light.frame.dal.mybatis.generator.domain.clazz.JavaKeyword;
-import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
-import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
+import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
+import io.light.frame.dal.mybatis.generator.core.ctx.GenContext;
+import io.light.frame.dal.mybatis.generator.core.ctx.listener.GenDaoListener;
+import io.light.frame.dal.mybatis.generator.core.ctx.listener.GenEntityListener;
+import io.light.frame.dal.mybatis.generator.core.ctx.listener.GenMapperXmlListener;
+import io.light.frame.dal.mybatis.generator.core.domain.DesignXml;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.Clazz;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.ClazzField;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.ClazzMode;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.JavaKeyword;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.MapperFunc;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.TableMapper;
 import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import io.light.frame.dal.mybatis.generator.sql.Dialect;
 import io.light.frame.dal.mybatis.generator.sql.builder.SqlBuilder;
@@ -28,7 +33,9 @@ import org.dom4j.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,13 +67,22 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
     /**
      * TODO reload able
      */
-    private final Map<String, Map<String, Document>> designXmlPool = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, DesignXml>> designXmlPool = new ConcurrentHashMap<>();
 
     @Autowired
     private MetaAccessor metaAccessor;
 
     @Autowired
     private List<SqlBuilder> sqlBuilders;
+
+    @Autowired(required = false)
+    private List<GenEntityListener> entityListeners;
+
+    @Autowired(required = false)
+    private List<GenDaoListener> daoListeners;
+
+    @Autowired(required = false)
+    private List<GenMapperXmlListener> mapperXmlListeners;
 
     public MybatisGenerator(MybatisGenProperties mybatisGenProperties) {
         this.mybatisGenProperties = mybatisGenProperties;
@@ -104,36 +120,60 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
             File projectDir = GenToolKit.resolveProjectDir(moduleName);
             // step2: Get table metadata
             Table table = metaOperations.table(schemeName, tableName);
-            Assert.notNull(table, String.format("Table '%s' not found, dialect: %s", tableName,
-                    config.getDialect() == null ? Dialect.DEFAULT : config.getDialect()));
+            Assert.notNull(table, String.format("Table '%s' not found, dialect: %s, datasource:'%s'", tableName,
+                    config.getDialect() == null ? Dialect.DEFAULT : config.getDialect(), config.getDatasourceBeanId()));
             // step3: Create table mapper
             TableMapper tableMapper = new TableMapper(table);
-            // step4: Read design xml
-            Document designXml = designXmlPool.computeIfAbsent(moduleName, k -> new ConcurrentHashMap<>())
+            // step4: Read design xml and prepare context
+            DesignXml designXml = designXmlPool.computeIfAbsent(moduleName, k -> new ConcurrentHashMap<>())
                     .get(schemeName + "@" + tableName);
             if (designXml == null) {
                 designXml = GenToolKit.newSampleDesignXml(config, tableMapper);
             }
-            Element mapperElement = designXml.getRootElement();
+            Document designDoc = designXml.getDoc();
+            GenContext context = new GenContext(config, moduleName, projectDir, designXml, tableMapper);
+            if (log.isInfoEnabled()) {
+                log.info("Processing generation design => {}", designXml.getFile().getAbsolutePath());
+                log.info("Using datasource bean '{}'", config.getDatasourceBeanId());
+                log.info("Detail => Scheme: {}, Table: {}, Module: {}, Project: {}", schemeName, tableName,
+                        moduleName, projectDir.getAbsolutePath());
+            }
+            Element mapperElement = designDoc.getRootElement();
             // step5: Prepare entity class
-            Clazz entityClazz = prepareEntityClazz(config.getEntityPackage(), tableMapper);
+            Clazz entityClazz = prepareEntityClazz(config.getEntityPackage(), context);
             // step6: Prepare dao class
-            Clazz daoClazz = prepareDaoClazz(config.getDaoPackage(), tableMapper, mapperElement);
+            Clazz daoClazz = prepareDaoClazz(config.getDaoPackage(), context, mapperElement);
             // step7: Gen entity + dao
             File entityOutDir = GenToolKit.resolvePackageDir(projectDir, config.getJavaBuildPath(),
                     entityClazz.getPkg());
             File daoOutDir = GenToolKit.resolvePackageDir(projectDir, config.getJavaBuildPath(),
                     daoClazz.getPkg());
-            GenToolKit.createJavaFile(entityOutDir, config, entityClazz);
-            GenToolKit.createJavaFile(daoOutDir, config, daoClazz);
+            File entityFile = GenToolKit.createJavaFile(entityOutDir, config, entityClazz);
+            if (!CollectionUtils.isEmpty(entityListeners)) {
+                entityListeners.forEach(l -> l.afterGenerated(context, entityClazz, entityFile));
+            }
+            File daoFile = GenToolKit.createJavaFile(daoOutDir, config, daoClazz);
+            if (!CollectionUtils.isEmpty(daoListeners)) {
+                daoListeners.forEach(l -> l.afterGenerated(context, daoClazz, daoFile));
+            }
             // step8: Gen mapper xml
             File xmlOutDir = GenToolKit.resolvePackageDir(projectDir, config.getResourceBuildPath(),
                     config.getMapperXmlPackage());
-            GenToolKit.createMapperXml(xmlOutDir, config, tableMapper);
+            File mapperXml = GenToolKit.createMapperXml(xmlOutDir, config, tableMapper);
+            if (!CollectionUtils.isEmpty(mapperXmlListeners)) {
+                mapperXmlListeners.forEach(l -> l.afterGenerated(context, mapperXml));
+            }
+            if (log.isInfoEnabled()) {
+                log.info("Generated SUCCESS");
+                log.info("Entity file: {}", entityFile.getAbsolutePath());
+                log.info("Dao file: {}", daoFile.getAbsolutePath());
+                log.info("Mapper xml: {}", mapperXml.getAbsolutePath());
+            }
         });
     }
 
-    protected Clazz prepareEntityClazz(String pkg, TableMapper tableMapper) {
+    protected Clazz prepareEntityClazz(String pkg, GenContext context) {
+        TableMapper tableMapper = context.getTableMapper();
         Table table = tableMapper.getTable();
         String className = TABLE_NAME_CAMEL_CONVERTER.convert(table.getName());
         String classComment = table.getComment();
@@ -157,13 +197,17 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
             entityClazz.addFields(field);
         });
         tableMapper.setEntityClazz(entityClazz);
+        if (!CollectionUtils.isEmpty(entityListeners)) {
+            entityListeners.forEach(listener -> listener.onReady(context, entityClazz));
+        }
         entityClazz.complete();
         return entityClazz;
     }
 
-    protected Clazz prepareDaoClazz(String pkg, TableMapper tableMapper, Element mapperElement) {
+    protected Clazz prepareDaoClazz(String pkg, GenContext context, Element mapperElement) {
+        TableMapper tableMapper = context.getTableMapper();
         // fill mapper`s sql functions
-        fillMapperFunctions(tableMapper, mapperElement);
+        fillMapperFunctions(context, mapperElement);
         // do prepare
         Clazz entityClazz = tableMapper.getEntityClazz();
         String daoName = entityClazz.getSimpleName() + "Dao";
@@ -177,11 +221,15 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
         daoClazz.addAnnotations(Clazz.of("org.apache.ibatis.annotations.Mapper", ClazzMode.ANNOTATION));
         tableMapper.getFuncList().stream().map(MapperFunc::asMethod).forEach(daoClazz::addMethods);
         tableMapper.setDaoClazz(daoClazz);
+        if (!CollectionUtils.isEmpty(daoListeners)) {
+            daoListeners.forEach(listener -> listener.onReady(context, entityClazz));
+        }
         daoClazz.complete();
         return daoClazz;
     }
 
-    protected void fillMapperFunctions(TableMapper mapper, Element mapperElement) {
+    protected void fillMapperFunctions(GenContext context, Element mapperElement) {
+        TableMapper mapper = context.getTableMapper();
         Clazz entityClazz = mapper.getEntityClazz();
         Iterator<Node> iter = mapperElement.nodeIterator();
         List<String> comments = new ArrayList<>();
@@ -213,20 +261,27 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
                 if (!comments.isEmpty()) {
                     mapperFunc.setComment(String.join("\n     * ", comments));
                 }
-                mapperFunc.buildContent((strBuilder, xmlElement) -> {
+                mapperFunc.buildContent((appender, xmlElement) -> {
                     sqlBuilders.stream().filter(b -> b.accept(mapperFunc, xmlElement)).forEach(sqlBuilder -> {
-                        if (!strBuilder.isPrepared()) {
-                            sqlBuilder.prepare(strBuilder, xmlElement, mapper, mapperFunc);
-                        } else if (strBuilder.isCompleted()) {
-                            sqlBuilder.onComplete(strBuilder, xmlElement, mapper, mapperFunc);
+                        if (!appender.isCompleted()) {
+                            sqlBuilder.build(appender, xmlElement, mapper, mapperFunc);
                         } else {
-                            sqlBuilder.build(strBuilder, xmlElement, mapper, mapperFunc);
+                            if (!CollectionUtils.isEmpty(mapperXmlListeners)) {
+                                mapperXmlListeners.forEach(listener ->
+                                        listener.onFuncReady(context, mapperFunc, appender)
+                                );
+                            }
                         }
                     });
                 }, asCharactersNodes);
                 mapper.getFuncList().add(mapperFunc);
             }
             comments.clear();
+        }
+        if (!CollectionUtils.isEmpty(mapperXmlListeners)) {
+            mapperXmlListeners.forEach(listener ->
+                    listener.onReady(context)
+            );
         }
     }
 
@@ -274,14 +329,14 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
             if (!fileName.endsWith(".xml")) {
                 return FileVisitResult.CONTINUE;
             }
-            Document mapperXml;
+            Document designDoc;
             try {
-                mapperXml = GenToolKit.readXml(xmlFile);
+                designDoc = GenToolKit.readXml(xmlFile);
             } catch (Exception e) {
                 log.warn("Failed to read xml :{}", xmlFile.getAbsolutePath(), e);
                 return FileVisitResult.CONTINUE;
             }
-            Element meta = mapperXml.getRootElement();
+            Element meta = designDoc.getRootElement();
             String schemeName = meta.attributeValue("scheme");
             if (StringUtils.isBlank(schemeName)) {
                 schemeName = defaultScheme;
@@ -292,7 +347,7 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
             Table table = metaOpt.table(schemeName, tableName);
             Assert.notNull(table, String.format("Table '%s' not found, xml: %s", tableName, xmlFile.getAbsolutePath()));
             if (designXmlPool.computeIfAbsent(moduleName, k -> new ConcurrentHashMap<>())
-                    .putIfAbsent(schemeName + "@" + tableName, mapperXml) != null) {
+                    .putIfAbsent(schemeName + "@" + tableName, new DesignXml(xmlFile, designDoc)) != null) {
                 throw new IOException(String.format("Duplicate mapper design for table '%s'", tableName));
             }
             return FileVisitResult.CONTINUE;
@@ -303,6 +358,15 @@ public class MybatisGenerator implements ApplicationListener<ContextRefreshedEve
     public void onApplicationEvent(ContextRefreshedEvent event) {
         try {
             init();
+            if (!CollectionUtils.isEmpty(entityListeners)) {
+                AnnotationAwareOrderComparator.sort(entityListeners);
+            }
+            if (!CollectionUtils.isEmpty(daoListeners)) {
+                AnnotationAwareOrderComparator.sort(daoListeners);
+            }
+            if (!CollectionUtils.isEmpty(mapperXmlListeners)) {
+                AnnotationAwareOrderComparator.sort(mapperXmlListeners);
+            }
         } catch (Exception e) {
             throw new MybatisGenException("Init failed", e);
         }

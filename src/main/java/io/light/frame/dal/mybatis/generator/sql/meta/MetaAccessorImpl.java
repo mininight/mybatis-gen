@@ -1,7 +1,7 @@
 package io.light.frame.dal.mybatis.generator.sql.meta;
 
 import com.google.common.collect.Maps;
-import io.light.frame.dal.mybatis.generator.cfg.MybatisGenProperties;
+import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
 import io.light.frame.dal.mybatis.generator.exceptions.MetaAccessException;
 import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import io.light.frame.dal.mybatis.generator.sql.Dialect;
@@ -118,6 +118,7 @@ public class MetaAccessorImpl implements MetaAccessor {
             String dsBeanId = cfg.getDatasourceBeanId();
             if (StringUtils.isBlank(dsBeanId)) {
                 dsBeanId = defaultDsBeanId;
+                cfg.setDatasourceBeanId(dsBeanId);
             }
             if (StringUtils.isBlank(dsBeanId)) {
                 throw new MetaAccessException("Default datasource bean not found");

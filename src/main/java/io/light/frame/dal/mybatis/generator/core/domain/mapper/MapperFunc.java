@@ -2,11 +2,11 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.domain.mapper;
+package io.light.frame.dal.mybatis.generator.core.domain.mapper;
 
-import io.light.frame.dal.mybatis.generator.domain.clazz.Clazz;
-import io.light.frame.dal.mybatis.generator.domain.clazz.ClazzMethod;
-import io.light.frame.dal.mybatis.generator.domain.clazz.ClazzMode;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.Clazz;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.ClazzMethod;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.ClazzMode;
 import io.light.frame.dal.mybatis.generator.util.GenToolKit;
 import lombok.Getter;
 import lombok.Setter;
@@ -154,7 +154,6 @@ public class MapperFunc {
         }
         builder = new ContentBuilder();
         appender.accept(builder, element);
-        builder.markPrepared();
         List<Node> contentNodes = element.content();
         Iterator<Node> iter = contentNodes.iterator();
         while (iter.hasNext()) {
@@ -249,12 +248,7 @@ public class MapperFunc {
     @Getter
     public static class ContentBuilder {
         private final StringBuilder appender = new StringBuilder();
-        private volatile boolean prepared;
         private volatile boolean completed;
-
-        private void markPrepared() {
-            this.prepared = true;
-        }
 
         private void markCompleted() {
             this.completed = true;

@@ -4,12 +4,12 @@
 
 package io.light.frame.dal.mybatis.generator.sql.builder;
 
-import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
-import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.MapperFunc;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.TableMapper;
 import org.dom4j.Element;
 
 /**
- * TODO
+ * Sql builder
  *
  * @author Ivan
  * @version 1.0.0
@@ -21,13 +21,5 @@ public interface SqlBuilder {
         return false;
     }
 
-    default void prepare(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper,
-                         MapperFunc mapperFunc) {
-    }
-
     void build(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc);
-
-    default void onComplete(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper,
-                            MapperFunc mapperFunc) {
-    }
 }

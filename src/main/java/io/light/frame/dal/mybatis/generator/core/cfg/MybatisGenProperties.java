@@ -1,4 +1,4 @@
-package io.light.frame.dal.mybatis.generator.cfg;
+package io.light.frame.dal.mybatis.generator.core.cfg;
 
 import io.light.frame.dal.mybatis.generator.sql.Dialect;
 import lombok.Getter;

@@ -2,7 +2,7 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.domain.clazz;
+package io.light.frame.dal.mybatis.generator.core.domain.clazz;
 
 import io.light.frame.dal.mybatis.generator.util.GenToolKit;
 import io.light.frame.dal.mybatis.generator.util.StatefulSet;
@@ -319,7 +319,7 @@ public final class Clazz {
     }
 
     public Clazz copyAsArray() {
-        Clazz c = Clazz.of(name, ClazzMode.ARRAY);
+        Clazz c = of(name, ClazzMode.ARRAY);
         this.genericTypes.forEach(c::addGenerics);
         return c;
     }

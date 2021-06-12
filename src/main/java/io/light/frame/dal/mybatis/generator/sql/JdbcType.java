@@ -4,8 +4,8 @@
 
 package io.light.frame.dal.mybatis.generator.sql;
 
-import io.light.frame.dal.mybatis.generator.domain.clazz.Clazz;
-import io.light.frame.dal.mybatis.generator.domain.clazz.ClazzMode;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.Clazz;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.ClazzMode;
 import io.light.frame.dal.mybatis.generator.sql.meta.entity.TableColumn;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;

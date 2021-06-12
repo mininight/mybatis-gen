@@ -8,9 +8,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.annotation.JSONField;
-import io.light.frame.dal.mybatis.generator.cfg.MybatisGenProperties;
-import io.light.frame.dal.mybatis.generator.domain.clazz.*;
-import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
+import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
+import io.light.frame.dal.mybatis.generator.core.domain.DesignXml;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.*;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.TableMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.VelocityContext;
@@ -379,33 +380,25 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
     }
 
     @SuppressWarnings("unchecked")
-    public static void createJavaFile(File outDir, MybatisGenProperties.GeneratorCfg config, Clazz clazz,
-                                      Clazz... classes) throws Exception {
-        if (clazz == null && (classes == null || classes.length == 0)) {
-            return;
-        }
+    public static File createJavaFile(File outDir, MybatisGenProperties.GeneratorCfg config, Clazz clazz)
+            throws Exception {
         VelocityContext context = new VelocityContext();
         context.put("author", System.getProperty("user.name"));
         context.put("company", System.getProperty("user.name"));
-        BeanMap.create(config).forEach((k, v) -> {
-            if (v == null || !(k instanceof String)) {
-                return;
-            }
-            context.put((String) k, v);
-        });
-        if (clazz != null) {
-            createJavaFile(outDir, context, clazz);
+        if (config != null) {
+            BeanMap.create(config).forEach((k, v) -> {
+                if (v == null || !(k instanceof String)) {
+                    return;
+                }
+                context.put((String) k, v);
+            });
         }
-        if (classes == null || classes.length == 0) {
-            return;
-        }
-        for (Clazz c : classes) {
-            createJavaFile(outDir, context, c);
-        }
+        return createJavaFile(outDir, context, clazz);
     }
 
-    public static void createJavaFile(File outDir, VelocityContext context, Clazz clazz) throws Exception {
+    public static File createJavaFile(File outDir, VelocityContext context, Clazz clazz) throws Exception {
         Assert.notNull(outDir, "Java files out dir need to specify");
+        Assert.notNull(clazz, "Missing clazz definition");
         outDir.mkdirs();
         String fileName = clazz.getSimpleName();
         if (fileName.contains("<")) {
@@ -418,36 +411,29 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
             context.put("clazz", clazz);
             VelocityEngineHelper.mergeTemplate("clazz.vm", "UTF-8", context, writer);
         }
+        return javaFile;
     }
 
     @SuppressWarnings("unchecked")
-    public static void createMapperXml(File outDir, MybatisGenProperties.GeneratorCfg config, TableMapper mapper,
-                                       TableMapper... mappers) throws Exception {
-        if (mapper == null && (mappers == null || mappers.length == 0)) {
-            return;
-        }
+    public static File createMapperXml(File outDir, MybatisGenProperties.GeneratorCfg config, TableMapper mapper)
+            throws Exception {
         VelocityContext context = new VelocityContext();
         context.put("author", System.getProperty("user.name"));
         context.put("company", System.getProperty("user.name"));
-        BeanMap.create(config).forEach((k, v) -> {
-            if (v == null || !(k instanceof String)) {
-                return;
-            }
-            context.put((String) k, v);
-        });
-        if (mapper != null) {
-            createMapperXml(outDir, context, mapper);
+        if (config != null) {
+            BeanMap.create(config).forEach((k, v) -> {
+                if (v == null || !(k instanceof String)) {
+                    return;
+                }
+                context.put((String) k, v);
+            });
         }
-        if (mappers == null || mappers.length == 0) {
-            return;
-        }
-        for (TableMapper m : mappers) {
-            createMapperXml(outDir, context, m);
-        }
+        return createMapperXml(outDir, context, mapper);
     }
 
-    public static void createMapperXml(File outDir, VelocityContext context, TableMapper mapper) throws Exception {
+    public static File createMapperXml(File outDir, VelocityContext context, TableMapper mapper) throws Exception {
         Assert.notNull(outDir, "Mapper xml files out dir need to specify");
+        Assert.notNull(mapper, "Missing mapper definition");
         outDir.mkdirs();
         File outFile = outDir.toPath().resolve(mapper.getDaoClazz().getSimpleName() + ".xml").toFile();
         try (FileWriter writer = new FileWriter(outFile)) {
@@ -456,9 +442,10 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
             context.put("mapper", mapper);
             VelocityEngineHelper.mergeTemplate("mapper.vm", "UTF-8", context, writer);
         }
+        return outFile;
     }
 
-    public static Document newSampleDesignXml(MybatisGenProperties.GeneratorCfg config, TableMapper mapper)
+    public static DesignXml newSampleDesignXml(MybatisGenProperties.GeneratorCfg config, TableMapper mapper)
             throws Exception {
         File userDir = new File(System.getProperty("user.dir"));
         Path designPath = userDir.toPath().resolve(config.getDesignDir());
@@ -468,7 +455,7 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
         try (FileWriter writer = new FileWriter(outFile)) {
             VelocityEngineHelper.mergeTemplate("design_sample.vm", "UTF-8", context, writer);
         }
-        return readXml(outFile);
+        return new DesignXml(outFile, readXml(outFile));
     }
 
     @Override

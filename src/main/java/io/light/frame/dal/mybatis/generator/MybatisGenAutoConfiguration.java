@@ -2,14 +2,13 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.cfg;
+package io.light.frame.dal.mybatis.generator;
 
-import io.light.frame.dal.mybatis.generator.MybatisGenerator;
-import io.light.frame.dal.mybatis.generator.cfg.MybatisGenProperties;
+import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
+import io.light.frame.dal.mybatis.generator.core.MybatisGenerator;
 import io.light.frame.dal.mybatis.generator.util.VelocityEngineHelper;
 import org.apache.velocity.spring.VelocityEngineFactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -25,7 +24,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
  * @version 1.0.0
  * @date 2021-05-21 07:42
  */
-@ComponentScan("io.light.frame.dal.mybatis.generator")
+@ComponentScan
 @Configuration
 @EnableConfigurationProperties(MybatisGenProperties.class)
 @AutoConfigureAfter({DataSourceAutoConfiguration.class})

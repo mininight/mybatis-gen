@@ -2,7 +2,7 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.domain.clazz;
+package io.light.frame.dal.mybatis.generator.core.domain.clazz;
 
 import lombok.Getter;
 

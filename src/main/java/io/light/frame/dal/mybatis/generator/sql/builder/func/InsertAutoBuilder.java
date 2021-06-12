@@ -2,10 +2,10 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.sql.builder.auto;
+package io.light.frame.dal.mybatis.generator.sql.builder.func;
 
-import io.light.frame.dal.mybatis.generator.domain.mapper.MapperFunc;
-import io.light.frame.dal.mybatis.generator.domain.mapper.TableMapper;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.MapperFunc;
+import io.light.frame.dal.mybatis.generator.core.domain.mapper.TableMapper;
 import io.light.frame.dal.mybatis.generator.sql.builder.appender.columns.ColumnsSqlAppender;
 import org.dom4j.Element;
 import org.springframework.stereotype.Component;
@@ -20,11 +20,11 @@ import java.util.List;
  * @date 2021-05-22 10:20
  */
 @Component
-public class InsertSqlBuilder extends AutoSqlBuilder {
+public class InsertAutoBuilder extends FuncAutoBuilder {
 
     private ColumnsSqlAppender columnsSqlAppender;
 
-    public InsertSqlBuilder(ColumnsSqlAppender columnsSqlAppender) {
+    public InsertAutoBuilder(ColumnsSqlAppender columnsSqlAppender) {
         this.columnsSqlAppender = columnsSqlAppender;
     }
 

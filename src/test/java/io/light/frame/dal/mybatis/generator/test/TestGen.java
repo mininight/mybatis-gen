@@ -1,6 +1,6 @@
 package io.light.frame.dal.mybatis.generator.test;
 
-import io.light.frame.dal.mybatis.generator.MybatisGenerator;
+import io.light.frame.dal.mybatis.generator.core.MybatisGenerator;
 import io.light.frame.dal.mybatis.generator.test.base.TestStarter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;

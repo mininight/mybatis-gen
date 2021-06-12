@@ -2,11 +2,11 @@
  *  Copyright © 2018 - 2021 xulianqiang90@163.com. All Rights Reserved.
  */
 
-package io.light.frame.dal.mybatis.generator.domain.mapper;
+package io.light.frame.dal.mybatis.generator.core.domain.mapper;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
-import io.light.frame.dal.mybatis.generator.domain.clazz.Clazz;
+import io.light.frame.dal.mybatis.generator.core.domain.clazz.Clazz;
 import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import io.light.frame.dal.mybatis.generator.sql.JdbcType;
 import io.light.frame.dal.mybatis.generator.sql.meta.entity.Table;
