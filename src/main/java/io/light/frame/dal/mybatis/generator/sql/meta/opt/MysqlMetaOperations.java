@@ -77,7 +77,6 @@ public class MysqlMetaOperations extends BaseMetaOperations {
     @Override
     public List<TableColumn> columns(String tableSchema, String tableName) {
         DialectJdbcTemplate jdbcTemplate = lookupJdbcTemplate();
-        Dialect dialect = jdbcTemplate.getDialect();
         Map<String, Object> params = Maps.newHashMap();
         params.put("tableSchema", tableSchema);
         params.put("tableName", tableName);
@@ -105,7 +104,6 @@ public class MysqlMetaOperations extends BaseMetaOperations {
     @Override
     public List<Table> tableList(String tableSchema) {
         DialectJdbcTemplate jdbcTemplate = lookupJdbcTemplate();
-        Dialect dialect = jdbcTemplate.getDialect();
         Map<String, Object> params = Maps.newHashMap();
         params.put("tableSchema", tableSchema);
         //
