@@ -9,7 +9,7 @@
     <version>${revision}</version>
 
     <modules>
-        <module>core</module>
+        <module>generator</module>
         <module>samples/dal-gen</module>
         <module>samples/module-level-0</module>
         <module>samples/sub/module-level-1</module>
