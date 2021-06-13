@@ -37,7 +37,7 @@ hs_err_pid*
 *.dex
 !**/scripts/**
 **/gen/
-**/mybatis_gen/
+**/mybatis_design/
 **/lib/
 .classpath
 .project
