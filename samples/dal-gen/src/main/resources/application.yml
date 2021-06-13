@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: dal-gen
+  output:
+    ansi:
+      enabled: always
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:Test_Any;MODE=MySQL;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=true
+    schema: H2_DDL.sql
+    username: PowerMan
+logging:
+  file:
+    name: ./logs/${spring.application.name}.log
+  level:
+    root: debug
+    org.springframework: info
+    org.mybatis: info
+    com.zaxxer.hikari: info
+    org.apache.velocity: info
+mybatis:
+  generator:
+    # local
+    module: .
+    design-dir: mybatis_design
+    company: xulianqiang90@163.com
+    dialect: h2
+    entity-package: io.light.frame.samples.generator.dal.autogen.entity
+    dao-package: io.light.frame.samples.generator.dal.autogen.dao
+    mapper-xml-location: mapper/autogen
+    other-modules:
+      # module-level-0
+      module-level-0:
+        dialect: h2
+        entity-package: module.level.one.autogen.entity
+        dao-package: module.level.one.autogen.dao
+      # module-level-1
+      "[sub/module-level-1]":
+        dialect: h2
+        entity-package: module.level.two.autogen.entity
+        dao-package: module.level.two.autogen.dao
+
+
+
+
+
+
+
+

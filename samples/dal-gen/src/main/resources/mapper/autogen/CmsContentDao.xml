@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.light.frame.samples.generator.dal.autogen.dao.CmsContentDao">
+
+    <resultMap id="BaseResultMap" type="io.light.frame.samples.generator.dal.autogen.entity.CmsContent">
+        <result column="id" jdbcType="INTEGER" property="id"/>
+        <result column="channel_id" jdbcType="INTEGER" property="channelId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="org_id" jdbcType="INTEGER" property="orgId"/>
+        <result column="publish_user_id" jdbcType="INTEGER" property="publishUserId"/>
+        <result column="model_id" jdbcType="INTEGER" property="modelId"/>
+        <result column="site_id" jdbcType="INTEGER" property="siteId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="title_is_bold" jdbcType="INTEGER" property="titleIsBold"/>
+        <result column="title_color" jdbcType="VARCHAR" property="titleColor"/>
+        <result column="short_title" jdbcType="VARCHAR" property="shortTitle"/>
+        <result column="release_time" jdbcType="TIMESTAMP" property="releaseTime"/>
+        <result column="offline_time" jdbcType="TIMESTAMP" property="offlineTime"/>
+        <result column="content_secret_id" jdbcType="INTEGER" property="contentSecretId"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="create_type" jdbcType="INTEGER" property="createType"/>
+        <result column="is_edit" jdbcType="INTEGER" property="isEdit"/>
+        <result column="sort_num" jdbcType="INTEGER" property="sortNum"/>
+        <result column="sort_weight" jdbcType="INTEGER" property="sortWeight"/>
+        <result column="views" jdbcType="INTEGER" property="views"/>
+        <result column="comments" jdbcType="INTEGER" property="comments"/>
+        <result column="ups" jdbcType="INTEGER" property="ups"/>
+        <result column="downs" jdbcType="INTEGER" property="downs"/>
+        <result column="downloads" jdbcType="INTEGER" property="downloads"/>
+        <result column="view_control" jdbcType="INTEGER" property="viewControl"/>
+        <result column="comment_control" jdbcType="INTEGER" property="commentControl"/>
+        <result column="is_top" jdbcType="INTEGER" property="isTop"/>
+        <result column="top_start_time" jdbcType="TIMESTAMP" property="topStartTime"/>
+        <result column="top_end_time" jdbcType="TIMESTAMP" property="topEndTime"/>
+        <result column="is_release_pc" jdbcType="INTEGER" property="isReleasePc"/>
+        <result column="is_release_wap" jdbcType="INTEGER" property="isReleaseWap"/>
+        <result column="is_release_app" jdbcType="INTEGER" property="isReleaseApp"/>
+        <result column="is_release_miniprogram" jdbcType="INTEGER" property="isReleaseMiniprogram"/>
+        <result column="is_recycle" jdbcType="INTEGER" property="isRecycle"/>
+        <result column="copy_source_content_id" jdbcType="INTEGER" property="copySourceContentId"/>
+        <result column="has_static" jdbcType="INTEGER" property="hasStatic"/>
+        <result column="check_mark" jdbcType="VARCHAR" property="checkMark"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="create_user" jdbcType="VARCHAR" property="createUser"/>
+        <result column="update_user" jdbcType="VARCHAR" property="updateUser"/>
+        <result column="deleted_flag" jdbcType="INTEGER" property="deletedFlag"/>
+        <result column="model_field_set" jdbcType="VARCHAR" property="modelFieldSet"/>
+        <result column="content_pos" jdbcType="INTEGER" property="contentPos"/>
+        <result column="ori_content_id" jdbcType="INTEGER" property="oriContentId"/>
+        <result column="people_views" jdbcType="INTEGER" property="peopleViews"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="io.light.frame.samples.generator.dal.autogen.entity.CmsContent">
+        insert into cms_content (
+			id, channel_id, user_id, org_id, 
+			publish_user_id, model_id, site_id, title, 
+			title_is_bold, title_color, short_title, release_time, 
+			offline_time, content_secret_id, status, create_type, 
+			is_edit, sort_num, sort_weight, views, 
+			comments, ups, downs, downloads, 
+			view_control, comment_control, is_top, top_start_time, 
+			top_end_time, is_release_pc, is_release_wap, is_release_app, 
+			is_release_miniprogram, is_recycle, copy_source_content_id, has_static, 
+			check_mark, create_time, update_time, create_user, 
+			update_user, deleted_flag, model_field_set, content_pos, 
+			ori_content_id, people_views
+		) values (
+			#{id}, #{channelId}, #{userId}, #{orgId}, 
+			#{publishUserId}, #{modelId}, #{siteId}, #{title}, 
+			#{titleIsBold}, #{titleColor}, #{shortTitle}, #{releaseTime}, 
+			#{offlineTime}, #{contentSecretId}, #{status}, #{createType}, 
+			#{isEdit}, #{sortNum}, #{sortWeight}, #{views}, 
+			#{comments}, #{ups}, #{downs}, #{downloads}, 
+			#{viewControl}, #{commentControl}, #{isTop}, #{topStartTime}, 
+			#{topEndTime}, #{isReleasePc}, #{isReleaseWap}, #{isReleaseApp}, 
+			#{isReleaseMiniprogram}, #{isRecycle}, #{copySourceContentId}, #{hasStatic}, 
+			#{checkMark}, #{createTime}, #{updateTime}, #{createUser}, 
+			#{updateUser}, #{deletedFlag}, #{modelFieldSet}, #{contentPos}, 
+			#{oriContentId}, #{peopleViews}
+		)
+    </insert>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select
+			id, channel_id, user_id, 
+			org_id, publish_user_id, model_id, 
+			site_id, title, title_is_bold, 
+			title_color, short_title, release_time, 
+			offline_time, content_secret_id, status, 
+			create_type, is_edit, sort_num, 
+			sort_weight, views, comments, 
+			ups, downs, downloads, 
+			view_control, comment_control, is_top, 
+			top_start_time, top_end_time, is_release_pc, 
+			is_release_wap, is_release_app, is_release_miniprogram, 
+			is_recycle, copy_source_content_id, has_static, 
+			check_mark, create_time, update_time, 
+			create_user, update_user, deleted_flag, 
+			model_field_set, content_pos, ori_content_id, 
+			people_views
+		from cms_content
+    </select>
+
+</mapper>

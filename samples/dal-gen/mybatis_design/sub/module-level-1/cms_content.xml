@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mybatis SYSTEM "mybatis3-table-mapper-gen.dtd">
+<mybatis table="cms_content" scheme="TEST_ANY">
+
+    <!--  Insert record  -->
+    <insert id="insert" autoGen="true"/>
+
+    <!--  Select all -->
+    <select id="selectAll" resultType="object" multi="true">
+        <columns/>
+    </select>
+
+</mybatis>
