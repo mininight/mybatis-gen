@@ -1,6 +1,5 @@
 package io.light.frame.dal.mybatis.generator.core.ctx.listener;
 
-import io.light.frame.dal.mybatis.generator.core.ctx.GenContext;
 import io.light.frame.dal.mybatis.generator.core.domain.mapper.MapperFunc;
 import org.springframework.core.Ordered;
 
@@ -15,9 +14,12 @@ import java.io.File;
  */
 public interface GenMapperXmlListener extends Ordered {
 
-    void onFuncReady(GenContext context, MapperFunc mapperFunc, MapperFunc.ContentBuilder contentBuilder);
+    default void onFuncReady(MapperFunc mapperFunc, MapperFunc.ContentBuilder contentBuilder) {}
 
-    void onReady(GenContext context);
+    default void afterGenerated(File mapperXml) {}
 
-    void afterGenerated(GenContext context, File mapperXml);
+    @Override
+    default int getOrder() {
+        return 0;
+    }
 }

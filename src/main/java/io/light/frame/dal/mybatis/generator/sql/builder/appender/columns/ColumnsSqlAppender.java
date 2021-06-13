@@ -4,6 +4,7 @@
 
 package io.light.frame.dal.mybatis.generator.sql.builder.appender.columns;
 
+import io.light.frame.dal.mybatis.generator.core.ctx.GenContext;
 import io.light.frame.dal.mybatis.generator.core.domain.clazz.Clazz;
 import io.light.frame.dal.mybatis.generator.core.domain.mapper.MapperFunc;
 import io.light.frame.dal.mybatis.generator.core.domain.mapper.TableMapper;
@@ -11,11 +12,10 @@ import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import io.light.frame.dal.mybatis.generator.sql.builder.appender.SqlAppender;
 import io.light.frame.dal.mybatis.generator.sql.meta.MetaAccessor;
 import io.light.frame.dal.mybatis.generator.util.GenToolKit;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Element;
-import org.dom4j.Node;
-import org.dom4j.Text;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
  * @version 1.0.0
  * @date 2021-05-22 11:03
  */
+@Slf4j
 @Component
 public class ColumnsSqlAppender extends SqlAppender {
 
@@ -62,6 +63,7 @@ public class ColumnsSqlAppender extends SqlAppender {
     @Override
     public void build(MapperFunc.ContentBuilder builder, Element element, TableMapper mapper, MapperFunc mapperFunc) {
         Columns columns = GenToolKit.elementAttrsAsObject(element, Columns.class);
+        GenContext.current().getVars().put(GenContext.VAR_KEY_SQL_FUNC_COLUMNS, columns);
         List<Columns.Append> appends = columns.getAppends();
         Columns.Scope scope = columns.getScope();
         Clazz entityClazz = mapper.getEntityClazz();
@@ -107,15 +109,20 @@ public class ColumnsSqlAppender extends SqlAppender {
             completeSqlPrefix(builder, funcType);
             if (appends != null && !appends.isEmpty()) {
                 appends.forEach(appender -> {
-                    metaAccessor.touch(metaOperation -> {
-                        TableMapper tm = new TableMapper(metaOperation.table(mapper.getTable().getSchema(),
-                                appender.getTable()));
-                        List<TableMapper.Property> propList = fetchMapperProperties(scope, funcType, tm, appender);
-                        if (propList == null || propList.isEmpty()) {
-                            return;
-                        }
-                        properties.addAll(propList);
-                    });
+                    try {
+                        metaAccessor.touch(metaOperation -> {
+                            TableMapper tm = new TableMapper(metaOperation.table(mapper.getTable().getSchema(),
+                                    appender.getTable()));
+                            List<TableMapper.Property> propList = fetchMapperProperties(scope, funcType, tm, appender);
+                            if (propList == null || propList.isEmpty()) {
+                                return;
+                            }
+                            properties.addAll(propList);
+                        });
+                    } catch (Exception e) {
+                        GenToolKit.handleException(log, String.format("Touch metadata failed, schema:'%S', table:'%s'",
+                                mapper.getTable().getSchema(), appender.getTable()), e);
+                    }
                 });
             }
             int i = 0;
@@ -139,13 +146,6 @@ public class ColumnsSqlAppender extends SqlAppender {
                 i++;
                 if (i % 3 == 0 && i <= max) {
                     builder.append("\n\t\t\t");
-                }
-            }
-            if (!xmlContentHasKeyword(element, "from ")
-                    && !xmlContentHasKeyword(element, "from\n")) {
-                builder.append("\n\t\tfrom ").append(thisTableName);
-                if (StringUtils.isNotBlank(columns.getTableAlias())) {
-                    builder.append(" ").append(columns.getTableAlias());
                 }
             }
         }
@@ -249,22 +249,5 @@ public class ColumnsSqlAppender extends SqlAppender {
                 builder.append("\n\t\t\t");
             }
         }
-    }
-
-    private boolean xmlContentHasKeyword(Element element, String sqlKeyword) {
-        String kw = sqlKeyword.toLowerCase();
-        for (Node node : element.content()) {
-            if (!(node instanceof Text)) {
-                continue;
-            }
-            String text = node.getText();
-            if (StringUtils.isBlank(text)) {
-                continue;
-            }
-            if (text.toLowerCase().contains(kw)) {
-                return true;
-            }
-        }
-        return false;
     }
 }

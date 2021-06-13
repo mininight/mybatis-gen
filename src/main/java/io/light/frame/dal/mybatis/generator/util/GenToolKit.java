@@ -12,12 +12,14 @@ import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
 import io.light.frame.dal.mybatis.generator.core.domain.DesignXml;
 import io.light.frame.dal.mybatis.generator.core.domain.clazz.*;
 import io.light.frame.dal.mybatis.generator.core.domain.mapper.TableMapper;
+import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.cglib.beans.BeanMap;
@@ -108,6 +110,15 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
             }
         }
         return clazz;
+    }
+
+    public static void handleException(Logger logger, String msg, Exception e) {
+        logger.error(msg);
+        if (e instanceof MybatisGenException) {
+            throw (MybatisGenException) e;
+        } else {
+            throw new MybatisGenException(msg, e);
+        }
     }
 
     public static void fillGenerics(Clazz clazz, Clazz... generics) {
@@ -380,8 +391,7 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
     }
 
     @SuppressWarnings("unchecked")
-    public static File createJavaFile(File outDir, MybatisGenProperties.GeneratorCfg config, Clazz clazz)
-            throws Exception {
+    public static File createJavaFile(File outDir, MybatisGenProperties.GeneratorCfg config, Clazz clazz) {
         VelocityContext context = new VelocityContext();
         context.put("author", System.getProperty("user.name"));
         context.put("company", System.getProperty("user.name"));
@@ -396,27 +406,30 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
         return createJavaFile(outDir, context, clazz);
     }
 
-    public static File createJavaFile(File outDir, VelocityContext context, Clazz clazz) throws Exception {
+    public static File createJavaFile(File outDir, VelocityContext context, Clazz clazz) {
         Assert.notNull(outDir, "Java files out dir need to specify");
         Assert.notNull(clazz, "Missing clazz definition");
         outDir.mkdirs();
-        String fileName = clazz.getSimpleName();
-        if (fileName.contains("<")) {
-            fileName = fileName.substring(0, fileName.indexOf("<"));
+        try {
+            String fileName = clazz.getSimpleName();
+            if (fileName.contains("<")) {
+                fileName = fileName.substring(0, fileName.indexOf("<"));
+            }
+            File javaFile = outDir.toPath().resolve(fileName + ".java").toFile();
+            try (FileWriter writer = new FileWriter(javaFile)) {
+                context.put("today", LocalDateTime.now());
+                context.put("todayStr", LocalDateTime.now().format(DEFAULT_DATE_FORMAT));
+                context.put("clazz", clazz);
+                VelocityEngineHelper.mergeTemplate("clazz.vm", "UTF-8", context, writer);
+            }
+            return javaFile;
+        } catch (Exception e) {
+            throw new MybatisGenException("Create java file error", e);
         }
-        File javaFile = outDir.toPath().resolve(fileName + ".java").toFile();
-        try (FileWriter writer = new FileWriter(javaFile)) {
-            context.put("today", LocalDateTime.now());
-            context.put("todayStr", LocalDateTime.now().format(DEFAULT_DATE_FORMAT));
-            context.put("clazz", clazz);
-            VelocityEngineHelper.mergeTemplate("clazz.vm", "UTF-8", context, writer);
-        }
-        return javaFile;
     }
 
     @SuppressWarnings("unchecked")
-    public static File createMapperXml(File outDir, MybatisGenProperties.GeneratorCfg config, TableMapper mapper)
-            throws Exception {
+    public static File createMapperXml(File outDir, MybatisGenProperties.GeneratorCfg config, TableMapper mapper) {
         VelocityContext context = new VelocityContext();
         context.put("author", System.getProperty("user.name"));
         context.put("company", System.getProperty("user.name"));
@@ -431,31 +444,38 @@ public class GenToolKit implements ApplicationListener<ApplicationPreparedEvent>
         return createMapperXml(outDir, context, mapper);
     }
 
-    public static File createMapperXml(File outDir, VelocityContext context, TableMapper mapper) throws Exception {
+    public static File createMapperXml(File outDir, VelocityContext context, TableMapper mapper) {
         Assert.notNull(outDir, "Mapper xml files out dir need to specify");
         Assert.notNull(mapper, "Missing mapper definition");
         outDir.mkdirs();
-        File outFile = outDir.toPath().resolve(mapper.getDaoClazz().getSimpleName() + ".xml").toFile();
-        try (FileWriter writer = new FileWriter(outFile)) {
-            context.put("today", LocalDateTime.now());
-            context.put("todayStr", LocalDateTime.now().format(DEFAULT_DATE_FORMAT));
-            context.put("mapper", mapper);
-            VelocityEngineHelper.mergeTemplate("mapper.vm", "UTF-8", context, writer);
+        try {
+            File outFile = outDir.toPath().resolve(mapper.getDaoClazz().getSimpleName() + ".xml").toFile();
+            try (FileWriter writer = new FileWriter(outFile)) {
+                context.put("today", LocalDateTime.now());
+                context.put("todayStr", LocalDateTime.now().format(DEFAULT_DATE_FORMAT));
+                context.put("mapper", mapper);
+                VelocityEngineHelper.mergeTemplate("mapper.vm", "UTF-8", context, writer);
+            }
+            return outFile;
+        } catch (Exception e) {
+            throw new MybatisGenException("Create mapper xml error", e);
         }
-        return outFile;
     }
 
-    public static DesignXml newSampleDesignXml(MybatisGenProperties.GeneratorCfg config, TableMapper mapper)
-            throws Exception {
-        File userDir = new File(System.getProperty("user.dir"));
-        Path designPath = userDir.toPath().resolve(config.getDesignDir());
-        File outFile = designPath.resolve(mapper.getTable().getName() + ".xml").toFile();
-        VelocityContext context = new VelocityContext();
-        context.put("mapper", mapper);
-        try (FileWriter writer = new FileWriter(outFile)) {
-            VelocityEngineHelper.mergeTemplate("design_sample.vm", "UTF-8", context, writer);
+    public static DesignXml newSampleDesignXml(MybatisGenProperties.GeneratorCfg config, TableMapper mapper) {
+        try {
+            File userDir = new File(System.getProperty("user.dir"));
+            Path designPath = userDir.toPath().resolve(config.getDesignDir());
+            File outFile = designPath.resolve(mapper.getTable().getName() + ".xml").toFile();
+            VelocityContext context = new VelocityContext();
+            context.put("mapper", mapper);
+            try (FileWriter writer = new FileWriter(outFile)) {
+                VelocityEngineHelper.mergeTemplate("design_sample.vm", "UTF-8", context, writer);
+            }
+            return new DesignXml(outFile, readXml(outFile));
+        } catch (Exception e) {
+            throw new MybatisGenException("Create sample design xml error", e);
         }
-        return new DesignXml(outFile, readXml(outFile));
     }
 
     @Override

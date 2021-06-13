@@ -4,8 +4,8 @@
 
 package io.light.frame.dal.mybatis.generator;
 
-import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
 import io.light.frame.dal.mybatis.generator.core.MybatisGenerator;
+import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
 import io.light.frame.dal.mybatis.generator.util.VelocityEngineHelper;
 import org.apache.velocity.spring.VelocityEngineFactoryBean;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;

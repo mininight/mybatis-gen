@@ -1,6 +1,5 @@
 package io.light.frame.dal.mybatis.generator.core.ctx.listener;
 
-import io.light.frame.dal.mybatis.generator.core.ctx.GenContext;
 import io.light.frame.dal.mybatis.generator.core.domain.clazz.Clazz;
 import org.springframework.core.Ordered;
 
@@ -15,7 +14,12 @@ import java.io.File;
  */
 public interface GenDaoListener extends Ordered {
 
-    void onReady(GenContext context, Clazz daoClazz);
+    default void onReady(Clazz daoClazz){}
 
-    void afterGenerated(GenContext context, Clazz daoClazz, File daoFile);
+    default void afterGenerated(Clazz daoClazz, File daoFile){}
+
+    @Override
+    default int getOrder() {
+        return 0;
+    }
 }

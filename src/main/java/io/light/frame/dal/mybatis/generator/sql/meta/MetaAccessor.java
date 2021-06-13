@@ -38,8 +38,9 @@ public interface MetaAccessor extends InitializingBean {
      * Do meta operations
      *
      * @param pipe meta operations pipeline
+     * @throws Exception operations error
      */
-    default void touch(Pipe<MetaOperations> pipe) {
+    default void touch(Pipe<MetaOperations> pipe) throws Exception {
         touch(null, pipe);
     }
 
@@ -48,8 +49,9 @@ public interface MetaAccessor extends InitializingBean {
      *
      * @param datasourceId datasource bean id
      * @param pipe         meta operations pipeline
+     * @throws Exception operations error
      */
-    void touch(String datasourceId, Pipe<MetaOperations> pipe);
+    void touch(String datasourceId, Pipe<MetaOperations> pipe) throws Exception;
 
     interface Pipe<T> {
         void accept(T t) throws Exception;

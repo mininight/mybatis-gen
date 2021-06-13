@@ -13,6 +13,7 @@ import io.light.frame.dal.mybatis.generator.sql.meta.entity.Table;
 import io.light.frame.dal.mybatis.generator.sql.meta.entity.TableColumn;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,19 +43,18 @@ public class TableMapper {
         table.setName(table.getName().toLowerCase());
         this.table = table;
         List<TableColumn> columns = table.getColumns();
-        if (columns == null || columns.isEmpty()) {
-            return;
+        if (!CollectionUtils.isEmpty(columns)) {
+            columns.stream().map(c -> Property.of(table, c)).forEach(property -> {
+                properties.add(property);
+                insertProperties.add(property);
+                updateProperties.add(property);
+                if (property.isPrimaryKey()) {
+                    primaryKeys.add(property);
+                }
+                insertProperties.removeIf(Property::isInsertIgnore);
+                updateProperties.removeIf(Property::isUpdateIgnore);
+            });
         }
-        columns.stream().map(c -> Property.of(table, c)).forEach(property -> {
-            properties.add(property);
-            insertProperties.add(property);
-            updateProperties.add(property);
-            if (property.isPrimaryKey()) {
-                primaryKeys.add(property);
-            }
-            insertProperties.removeIf(Property::isInsertIgnore);
-            updateProperties.removeIf(Property::isUpdateIgnore);
-        });
     }
 
     @Getter

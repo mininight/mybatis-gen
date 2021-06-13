@@ -145,27 +145,23 @@ public class MapperFunc {
     }
 
     public void buildContent(BiConsumer<ContentBuilder, Element> appender, Set<String> asCharactersNodes) {
-        ContentBuilder builder;
+        ContentBuilder builder = new ContentBuilder();
         if (autoGen) {
-            builder = new ContentBuilder();
             appender.accept(builder, element);
-            content = builder.toString().trim();
-            return;
-        }
-        builder = new ContentBuilder();
-        appender.accept(builder, element);
-        List<Node> contentNodes = element.content();
-        Iterator<Node> iter = contentNodes.iterator();
-        while (iter.hasNext()) {
-            Node node = iter.next();
-            String nodeName = node.getName();
-            if ("parameters".equalsIgnoreCase(nodeName)) {
-                continue;
-            }
-            if (asCharactersNodes != null && asCharactersNodes.contains(nodeName)) {
-                appender.accept(builder, (Element) node);
-            } else {
-                new StringBuilder().append(node.asXML());
+        } else {
+            List<Node> contentNodes = element.content();
+            Iterator<Node> iter = contentNodes.iterator();
+            while (iter.hasNext()) {
+                Node node = iter.next();
+                String nodeName = node.getName();
+                if ("parameters".equalsIgnoreCase(nodeName)) {
+                    continue;
+                }
+                if (asCharactersNodes != null && asCharactersNodes.contains(nodeName)) {
+                    appender.accept(builder, (Element) node);
+                } else {
+                    new StringBuilder().append(node.asXML());
+                }
             }
         }
         builder.markCompleted();

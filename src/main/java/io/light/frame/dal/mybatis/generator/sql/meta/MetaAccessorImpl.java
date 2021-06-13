@@ -2,8 +2,8 @@ package io.light.frame.dal.mybatis.generator.sql.meta;
 
 import com.google.common.collect.Maps;
 import io.light.frame.dal.mybatis.generator.core.cfg.MybatisGenProperties;
+import io.light.frame.dal.mybatis.generator.core.ctx.GenContext;
 import io.light.frame.dal.mybatis.generator.exceptions.MetaAccessException;
-import io.light.frame.dal.mybatis.generator.exceptions.MybatisGenException;
 import io.light.frame.dal.mybatis.generator.sql.Dialect;
 import io.light.frame.dal.mybatis.generator.sql.meta.opt.MetaOperations;
 import io.light.frame.dal.mybatis.generator.util.DialectJdbcTemplate;
@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
 @Repository
 public class MetaAccessorImpl implements MetaAccessor {
 
-    private static final ThreadLocal<DialectJdbcTemplate> JDBC_TEMPLATE_HOLDER = new ThreadLocal<>();
-
     private final Map<String, DialectJdbcTemplate> jdbcTemplates = new HashMap<>();
 
     private final MybatisGenProperties mybatisGenProperties;
@@ -45,35 +43,41 @@ public class MetaAccessorImpl implements MetaAccessor {
 
     @Override
     public DialectJdbcTemplate lookupJdbcTemplate() {
-        DialectJdbcTemplate jdbcTemplate = JDBC_TEMPLATE_HOLDER.get();
+        return lookupJdbcTemplate(null);
+    }
+
+    private DialectJdbcTemplate lookupJdbcTemplate(String datasourceId) {
+        if (StringUtils.isBlank(datasourceId)) {
+            GenContext context = GenContext.current(false);
+            if (context != null) {
+                datasourceId = context.getConfig().getDatasourceBeanId();
+            }
+            if (StringUtils.isBlank(datasourceId)) {
+                datasourceId = defaultDsBeanId;
+            }
+        }
+        DialectJdbcTemplate jdbcTemplate = jdbcTemplates.get(datasourceId);
         if (jdbcTemplate == null) {
             throw new MetaAccessException("Missing defined JDBC template");
         }
         return jdbcTemplate;
     }
 
+    /**
+     * Do meta operations
+     *
+     * @param datasourceId datasource bean id
+     * @param pipe         meta operations pipeline
+     * @throws Exception operations error
+     */
     @Override
-    public void touch(String datasourceId, Pipe<MetaOperations> consumer) {
-        try {
-            if (JDBC_TEMPLATE_HOLDER.get() == null) {
-                if (StringUtils.isBlank(datasourceId)) {
-                    datasourceId = defaultDsBeanId;
-                }
-                JDBC_TEMPLATE_HOLDER.set(jdbcTemplates.get(datasourceId));
-            }
-            Dialect dialect = lookupJdbcTemplate().getDialect();
-            MetaOperations operation = metaOperations.get(dialect);
-            if (operation == null) {
-                throw new MetaAccessException(String.format("Unsupported sql dialect '%s'", dialect));
-            }
-            consumer.accept(operation);
-        } catch (MybatisGenException mge) {
-            throw mge;
-        } catch (Exception e) {
-            throw new MetaAccessException("Metadata operation error", e);
-        } finally {
-            JDBC_TEMPLATE_HOLDER.remove();
+    public void touch(String datasourceId, Pipe<MetaOperations> pipe) throws Exception {
+        Dialect dialect = lookupJdbcTemplate(datasourceId).getDialect();
+        MetaOperations operation = metaOperations.get(dialect);
+        if (operation == null) {
+            throw new MetaAccessException(String.format("Unsupported sql dialect '%s'", dialect));
         }
+        pipe.accept(operation);
     }
 
     private DataSource lookupDefaultDataSource() {
